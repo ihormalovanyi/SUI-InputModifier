@@ -7,6 +7,7 @@ public extension View {
             _InputView(focused: focused, content: input)
                 .frame(width: 0, height: 0)
                 .opacity(0)
+                .id(focused.wrappedValue)
         }
     }
     

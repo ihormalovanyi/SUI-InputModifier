@@ -4,10 +4,10 @@ public extension View {
     
     @ViewBuilder func input<Input: View>(focused: Binding<Bool>, anchor: Alignment = .center, input: @escaping () -> Input) -> some View {
         background(alignment: anchor) {
-            _InputView(focused: focused, content: input)
+            //TODO: workaround: AnyView is a semisolution keeping the input's identity
+            _InputView(focused: focused) { .init(input().id(focused.wrappedValue)) }
                 .frame(width: 0, height: 0)
                 .opacity(0)
-                .id(focused.wrappedValue)
         }
     }
     
@@ -21,10 +21,10 @@ public extension View {
  
 }
 
-private struct _InputView<Content: View>: UIViewRepresentable {
+private struct _InputView: UIViewRepresentable {
  
     @Binding var focused: Bool
-    let content: () -> Content
+    let content: () -> AnyView
     
     func makeUIView(context: Context) -> UITextField {
         let hostingController = UIHostingController(rootView: content())
@@ -56,7 +56,7 @@ private struct _InputView<Content: View>: UIViewRepresentable {
     
     final class Coordinator: NSObject, UITextFieldDelegate {
         
-        var controller: UIHostingController<Content>?
+        var controller: UIHostingController<AnyView>?
         var focused: Binding<Bool>?
         
         func textFieldDidEndEditing(_ textField: UITextField) {
@@ -135,4 +135,3 @@ private struct _TextInputView<Input: View>: UIViewRepresentable {
     }
     
 }
-

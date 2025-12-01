@@ -1,0 +1,15 @@
+{
+  "originHash" : "81923f297b48109ec3e54fbf344112e17b423686bc4f3c91c8404f39d3635a6d",
+  "pins" : [
+    {
+      "identity" : "uiviewfinder",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ihormalovanyi/UIViewFinder",
+      "state" : {
+        "branch" : "main",
+        "revision" : "760f52ac6dd9cb36f393711469f53f80f18479da"
+      }
+    }
+  ],
+  "version" : 3
+}

@@ -12,9 +12,13 @@ let package = Package(
             targets: ["SUI-InputModifier"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/ihormalovanyi/UIViewFinder", branch: "main")
+    ],
     targets: [
         .target(
-            name: "SUI-InputModifier"
+            name: "SUI-InputModifier",
+            dependencies: [.product(name: "UIViewFinder", package: "UIViewFinder")]
         ),
     ]
 )

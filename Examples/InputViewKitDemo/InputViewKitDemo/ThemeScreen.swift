@@ -21,6 +21,7 @@ struct ThemeScreen: View {
                         Text(mood).foregroundStyle(theme.accent)
                     }
                     .contentShape(Rectangle())
+                    .accessibilityAddTraits(.isButton)
                     .inputView(isPresented: $isPicking) {
                         MoodPad(selection: $mood)
                     }
@@ -42,6 +43,10 @@ struct ThemeScreen: View {
         }
         .environmentObject(theme)
     }
+}
+
+#Preview {
+    ThemeScreen()
 }
 
 struct MoodPad: View {

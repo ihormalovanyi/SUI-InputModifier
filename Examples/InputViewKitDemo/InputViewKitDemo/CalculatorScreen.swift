@@ -13,6 +13,7 @@ struct CalculatorScreen: View {
                         .font(.title2.monospacedDigit())
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
+                        .accessibilityAddTraits(.isButton)
                         .inputView(isPresented: $isEditing) {
                             CalculatorPad(amount: $amount) { isEditing = false }
                         }
@@ -33,6 +34,11 @@ struct CalculatorPad: View {
     @Binding var amount: Decimal
     var onDone: () -> Void
 
+    /// Per-session digit buffer — also demonstrates that panel @State
+    /// survives show/hide cycles. Integer-only by design; for fractional
+    /// input use a locale-aware formatter, never String(describing: Decimal).
+    @State private var digits = ""
+
     private let keys: [[String]] = [
         ["7", "8", "9"],
         ["4", "5", "6"],
@@ -51,6 +57,7 @@ struct CalculatorPad: View {
                                 .frame(maxWidth: .infinity, minHeight: 52)
                         }
                         .buttonStyle(.bordered)
+                        .accessibilityLabel(key == "⌫" ? "Delete" : key == "C" ? "Clear" : key)
                     }
                 }
             }
@@ -65,13 +72,16 @@ struct CalculatorPad: View {
     private func tap(_ key: String) {
         switch key {
         case "C":
-            amount = 0
+            digits = ""
         case "⌫":
-            let digits = String(describing: amount).filter(\.isNumber).dropLast()
-            amount = Decimal(string: String(digits)) ?? 0
+            if !digits.isEmpty { digits.removeLast() }
         default:
-            let digits = String(describing: amount).filter(\.isNumber) + key
-            amount = Decimal(string: digits) ?? amount
+            digits += key
         }
+        amount = Decimal(string: digits.isEmpty ? "0" : digits) ?? 0
     }
+}
+
+#Preview {
+    CalculatorScreen()
 }

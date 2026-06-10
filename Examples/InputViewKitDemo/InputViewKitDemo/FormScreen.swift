@@ -41,5 +41,11 @@ struct FormScreen: View {
                 .foregroundStyle(.secondary)
         }
         .contentShape(Rectangle())
+        .accessibilityLabel(title)
+        .accessibilityAddTraits(.isButton)
     }
+}
+
+#Preview {
+    FormScreen()
 }

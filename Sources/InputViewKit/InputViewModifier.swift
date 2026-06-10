@@ -12,6 +12,7 @@ extension View {
         background(
             ProxyInputRepresentable(focus: focus, content: content)
                 .frame(width: 0, height: 0)
+                .allowsHitTesting(false)   // belt-and-suspenders; the UIView also sets isUserInteractionEnabled = false
                 .accessibilityHidden(true)
         )
     }

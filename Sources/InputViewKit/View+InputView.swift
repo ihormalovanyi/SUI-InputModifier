@@ -11,6 +11,10 @@ public extension View {
     /// interactive scroll dismissal, `endEditing`, another field taking
     /// focus — is reflected back into `isPresented`.
     ///
+    /// When a hardware keyboard is attached, the system may not present the
+    /// panel (standard `inputView` behavior); the binding still reflects
+    /// focus state. Apply at most one `inputView` modifier per view.
+    ///
     /// ```swift
     /// @State private var isEditing = false
     ///
@@ -56,6 +60,10 @@ public extension View {
     ///   - selection: The currently focused field, or `nil` for none.
     ///   - value: The value identifying this field.
     ///   - content: The panel's SwiftUI content (see `inputView(isPresented:content:)`).
+    ///
+    /// When a hardware keyboard is attached, the system may not present the
+    /// panel (standard `inputView` behavior); the binding still reflects
+    /// focus state. Apply at most one `inputView` modifier per view.
     func inputView<Value: Hashable, Content: View>(
         _ selection: Binding<Value?>,
         equals value: Value,

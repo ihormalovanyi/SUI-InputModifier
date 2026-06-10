@@ -15,6 +15,14 @@ final class IntegrationHarness {
         window.layoutIfNeeded()
     }
 
+    deinit {
+        let window = self.window
+        MainActor.assumeIsolated {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+    }
+
     /// All `ProxyInputView`s found in the window, depth-first.
     func proxies() -> [ProxyInputView] {
         func collect(_ view: UIView) -> [ProxyInputView] {

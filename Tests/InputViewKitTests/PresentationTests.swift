@@ -7,6 +7,13 @@ final class PresentationModel: ObservableObject {
     @Published var isPresented = false
 }
 
+private enum ProbeField: Hashable { case amount }
+
+@MainActor
+private final class SelectionModel: ObservableObject {
+    @Published var focus: ProbeField?
+}
+
 @Suite(.serialized)
 @MainActor
 struct PresentationTests {
@@ -58,5 +65,29 @@ struct PresentationTests {
         await settle()
         let proxy = try #require(harness.proxy())
         #expect(proxy.isFirstResponder)
+    }
+
+    private struct SelectionHost: View {
+        @ObservedObject var model: SelectionModel
+        var body: some View {
+            Text("amount")
+                .inputView($model.focus, equals: .amount) {
+                    Color.blue.frame(height: 180)
+                }
+        }
+    }
+
+    @Test func externalDismissalSyncsValueBindingToNil() async throws {
+        let model = SelectionModel()
+        model.focus = .amount
+        let harness = IntegrationHarness { SelectionHost(model: model) }
+        await settle()
+        let proxy = try #require(harness.proxy())
+        #expect(proxy.isFirstResponder)
+
+        harness.window.endEditing(true)
+        await settle()
+        #expect(!proxy.isFirstResponder)
+        #expect(model.focus == nil, "value binding must be nil-ed on external dismissal")
     }
 }

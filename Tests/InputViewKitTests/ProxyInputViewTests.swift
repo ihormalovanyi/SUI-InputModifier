@@ -2,6 +2,7 @@ import UIKit
 import Testing
 @testable import InputViewKit
 
+@Suite(.serialized)
 @MainActor
 struct ProxyInputViewTests {
 
@@ -75,5 +76,43 @@ struct ProxyInputViewTests {
         await settle()
         #expect(!proxy.isFirstResponder)
         #expect(externalResigns == 0, "no echo when the binding initiated the resign")
+    }
+
+    @Test func coalescedBurstAppliesLastValueOnly() async {
+        let window = makeWindow()
+        let proxy = ProxyInputView()
+        window.rootViewController!.view.addSubview(proxy)
+
+        var externalResigns = 0
+        proxy.onResignedExternally = { externalResigns += 1 }
+
+        proxy.setDesiredFocus(true)
+        proxy.setDesiredFocus(false)       // same tick — burst coalesces
+        await settle()
+        #expect(!proxy.isFirstResponder, "last desired value must win")
+        #expect(externalResigns == 0)
+
+        proxy.setDesiredFocus(false)
+        proxy.setDesiredFocus(true)
+        await settle()
+        #expect(proxy.isFirstResponder)
+    }
+
+    @Test func removalWhileFocusedResignsAndFiresOnce() async {
+        let window = makeWindow()
+        let proxy = ProxyInputView()
+        window.rootViewController!.view.addSubview(proxy)
+
+        var externalResigns = 0
+        proxy.onResignedExternally = { externalResigns += 1 }
+
+        proxy.setDesiredFocus(true)
+        await settle()
+        #expect(proxy.isFirstResponder)
+
+        proxy.removeFromSuperview()        // UIKit auto-resigns synchronously
+        await settle()
+        #expect(!proxy.isFirstResponder)
+        #expect(externalResigns == 1, "teardown without dismantle = external dismissal, exactly once")
     }
 }

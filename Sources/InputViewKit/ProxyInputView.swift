@@ -14,6 +14,9 @@ final class ProxyInputView: UIView {
     /// Fired when the system dismisses the panel from outside
     /// (interactive dismissal, `endEditing`, another responder taking over).
     /// Not fired for binding-driven dismissals.
+    /// May be invoked synchronously from within UIKit view teardown
+    /// (e.g. `removeFromSuperview`) — owners must clear desired focus and
+    /// this callback in `dismantleUIView` before the view is removed.
     var onResignedExternally: (() -> Void)?
 
     private var desiredFirstResponder = false
@@ -25,6 +28,11 @@ final class ProxyInputView: UIView {
     /// Stores the desired focus state and applies it asynchronously.
     /// Coalesced: a burst of SwiftUI updates produces one application.
     /// Window-aware: applied in `didMoveToWindow` if not attached yet.
+    ///
+    /// Deliberately schedules even when the value is unchanged: every
+    /// SwiftUI update is an organic retry for a `becomeFirstResponder`
+    /// that failed earlier (inactive scene, non-key window). Do not add
+    /// a value-diff guard here — it would create a stuck state.
     func setDesiredFocus(_ focused: Bool) {
         desiredFirstResponder = focused
         scheduleApply()
@@ -35,9 +43,11 @@ final class ProxyInputView: UIView {
         scheduleApply()
     }
 
+    @discardableResult
     override func resignFirstResponder() -> Bool {
+        let wasFirstResponder = isFirstResponder
         let resigned = super.resignFirstResponder()
-        if resigned, desiredFirstResponder {
+        if resigned, wasFirstResponder, desiredFirstResponder {
             // The system resigned us while the binding still wants focus:
             // an external dismissal. Sync it back.
             desiredFirstResponder = false

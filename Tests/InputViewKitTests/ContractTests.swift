@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import Testing
 @testable import InputViewKit
@@ -48,9 +49,18 @@ struct ContractTests {
         await settle()
         let first = try #require(proxies.first(where: { $0.isFirstResponder }))
 
+        // Observe the binding timeline: if the deactivate guard ever regresses,
+        // A's late resign writes nil AFTER B's claim — visible only here, not
+        // in the final settled state.
+        var transitions: [ContractModel.Field?] = []
+        let timeline = model.$field.sink { transitions.append($0) }
+        defer { timeline.cancel() }
+
         model.field = .b
         await settle(800)
         #expect(model.field == .b, "A's late resign must not clear B's claim")
+        #expect(!transitions.contains(nil),
+                "binding must not pass through nil during A→B switch, got \(transitions)")
         let second = try #require(proxies.first(where: { $0.isFirstResponder }))
         #expect(first !== second, "focus must have moved to the other proxy")
 
@@ -99,6 +109,8 @@ struct ContractTests {
 
         // @State persisted across the hide: the counter kept its value,
         // so a second onAppear records 2 (a reset identity would record 1 again).
+        #expect(recorder.stateValues.count >= 2,
+                "onAppear must fire on both shows — got \(recorder.stateValues); count == 1 means the panel was hidden rather than removed between cycles")
         #expect(recorder.stateValues.contains(2),
                 "panel @State must survive show/hide, got \(recorder.stateValues)")
         #expect(!recorder.stateValues.dropFirst().contains(1),
@@ -148,6 +160,11 @@ struct ContractTests {
         model.isPresented = true
         await settle(800)
 
+        // NOTE: if the EnvironmentObject were NOT forwarded, EnvPanel.body
+        // crashes (fatalError from @EnvironmentObject) instead of failing an
+        // assertion. That crash is intentional — a canary for the 0.1
+        // regression. Exit-test wrappers are macOS-only; on the simulator a
+        // crash = red CI, which is exactly the signal we want.
         // In 0.1 this crashed (no EnvironmentObject in the hosted tree).
         #expect(recorder.environmentReads.contains("aurora"))
         #expect(recorder.environmentReads.contains("uk_UA"))

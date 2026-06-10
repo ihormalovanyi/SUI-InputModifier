@@ -39,6 +39,11 @@ final class IntegrationHarness {
 
 /// Pumps the main queue long enough for coalesced focus applies,
 /// keyboard transitions and SwiftUI re-renders to settle.
+///
+/// Call sites use 800 ms where a keyboard PRESENTATION is involved:
+/// UIKit's keyboard animation (~250–350 ms) + hosting-controller
+/// propagation headroom. Do not reduce without re-running the suite
+/// repeatedly — these are real-window integration tests.
 @MainActor
 func settle(_ milliseconds: Int = 500) async {
     try? await Task.sleep(for: .milliseconds(milliseconds))

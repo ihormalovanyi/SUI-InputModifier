@@ -1,24 +1,15 @@
-// swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.0
 
 import PackageDescription
 
 let package = Package(
     name: "SUI-InputModifier",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v16)],
     products: [
-        .library(
-            name: "SUI-InputModifier",
-            targets: ["SUI-InputModifier"]
-        ),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/ihormalovanyi/UIViewFinder", branch: "main")
+        .library(name: "InputViewKit", targets: ["InputViewKit"])
     ],
     targets: [
-        .target(
-            name: "SUI-InputModifier",
-            dependencies: [.product(name: "UIViewFinder", package: "UIViewFinder")]
-        ),
+        .target(name: "InputViewKit"),
+        .testTarget(name: "InputViewKitTests", dependencies: ["InputViewKit"])
     ]
 )

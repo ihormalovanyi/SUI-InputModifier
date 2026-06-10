@@ -165,10 +165,17 @@ These are the documented guarantees (DocC "Guarantees" section):
   just claimed. This is the subtlest invariant in the design and has a dedicated test.
 - **Teardown.** `dismantleUIView` resigns first responder if active and syncs the binding —
   a view that disappears while presenting cleans up after itself.
-- **Panel backdrop (implementation verification item).** If a raw hosting view used as
-  `inputView` lacks the system keyboard backdrop, wrap it in
-  `UIInputView(inputViewStyle: .keyboard)` with `allowsSelfSizing = true`. Internal detail,
-  not API; resolved visually in the example app during implementation.
+- **Panel backdrop — verified empirically (iOS 26.5 simulator, 2026-06-10).** iOS 26
+  hosts *any* custom input view inside the system keyboard chrome automatically: both a raw
+  `UIView` and a `UIInputView(inputViewStyle: .keyboard)` are clipped to the rounded
+  Liquid-Glass keyboard silhouette. A raw view supplies its own background inside that
+  shape; `UIInputView(inputViewStyle: .keyboard)` additionally puts the system keyboard
+  material behind the content. **Decision:** wrap the hosting view in
+  `UIInputView(inputViewStyle: .keyboard)` with `allowsSelfSizing = true` and a clear
+  hosting-view background — panel content sits on the system glass exactly like the real
+  keyboard; an opaque panel background remains possible by making the content itself
+  opaque. Remaining example-app checks: visual pass on a physical device and on iOS 16/17
+  where the chrome is the classic square keyboard.
 - **Proxy invisibility.** 0×0 in the host's `.background`, `isUserInteractionEnabled = false`,
   `isAccessibilityElement = false`, plus `.accessibilityHidden(true)` on the SwiftUI side.
 

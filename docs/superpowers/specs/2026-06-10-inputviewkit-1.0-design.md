@@ -176,6 +176,19 @@ These are the documented guarantees (DocC "Guarantees" section):
   keyboard; an opaque panel background remains possible by making the content itself
   opaque. Remaining example-app checks: visual pass on a physical device and on iOS 16/17
   where the chrome is the classic square keyboard.
+- **Self-sizing — verified empirically (iOS 26.5 simulator, 2026-06-10).** The working
+  recipe for a panel that adopts content height *and* live-resizes while presented:
+  a `UIInputView` subclass with `allowsSelfSizing = true`,
+  `translatesAutoresizingMaskIntoConstraints = false`, height supplied via an
+  `intrinsicContentSize` override, and on change `invalidateIntrinsicContentSize()` +
+  `reloadInputViews()` on the responder (measured 300 pt → 460 pt live). Two approaches
+  verified **not** to work: (a) pinning an autolayout content chain inside the input view —
+  collapses to zero height, panel never appears; (b) intrinsic invalidation with
+  `translatesAutoresizingMaskIntoConstraints` left `true` — panel stays at presentation
+  height even after `reloadInputViews()`. The package wires
+  `UIHostingController.sizingOptions = .intrinsicContentSize` invalidations to the wrapper's
+  `invalidateIntrinsicContentSize()` + `reloadInputViews()` (the reload may be redundant in
+  some paths; it is idempotent and kept).
 - **Proxy invisibility.** 0×0 in the host's `.background`, `isUserInteractionEnabled = false`,
   `isAccessibilityElement = false`, plus `.accessibilityHidden(true)` on the SwiftUI side.
 

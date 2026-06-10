@@ -31,9 +31,13 @@ final class SelfSizingInputView: UIInputView {
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
 
     func setIdealContentHeight(_ height: CGFloat) {
+        let height = max(0, height)
         guard height != idealContentHeight else { return }
         idealContentHeight = height
         invalidateIntrinsicContentSize()
+        // SAFETY: reloadInputViews() may re-enter layout. The same-value guard
+        // above breaks the cycle: a reload cannot synchronously produce a new
+        // distinct ideal height for unchanged content.
         onSizeShouldReload?()
     }
 
@@ -45,6 +49,7 @@ final class SelfSizingInputView: UIInputView {
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         invalidateIntrinsicContentSize()
+        onSizeShouldReload?()
     }
 }
 #endif

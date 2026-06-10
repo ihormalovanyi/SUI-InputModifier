@@ -23,6 +23,7 @@ struct InputHostRoot<Content: View>: View {
                 onHeightChange(height)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .ignoresSafeArea(.keyboard)
     }
 }
 #endif

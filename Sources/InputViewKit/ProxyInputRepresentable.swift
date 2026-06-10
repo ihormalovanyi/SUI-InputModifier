@@ -22,6 +22,13 @@ struct ProxyInputRepresentable<Content: View>: UIViewRepresentable {
         host.view.backgroundColor = .clear
         host.view.translatesAutoresizingMaskIntoConstraints = false
         host.sizingOptions = .intrinsicContentSize
+        // The hosting view lives INSIDE the keyboard's input window; without
+        // this it would try to keyboard-avoid itself (content offset/clipped
+        // by up to the panel's own height). Keep .container so the home
+        // indicator inset still propagates to SwiftUI content.
+        if #available(iOS 16.4, *) {
+            host.safeAreaRegions = .container
+        }
 
         wrapper.addSubview(host.view)
         NSLayoutConstraint.activate([
@@ -48,6 +55,7 @@ struct ProxyInputRepresentable<Content: View>: UIViewRepresentable {
     func updateUIView(_ proxy: ProxyInputView, context: Context) {
         let coordinator = context.coordinator
         coordinator.focus = focus
+        // Unconditional by design — environment freshness depends on it.
         coordinator.hostingController?.rootView = makeRoot(context: context, coordinator: coordinator)
         proxy.setDesiredFocus(focus.isActive())
     }
@@ -65,6 +73,13 @@ struct ProxyInputRepresentable<Content: View>: UIViewRepresentable {
         }
     }
 
+    /// Environment freshness rests on two channels — do not "optimize" either:
+    /// 1. Environment VALUE changes (colorScheme, locale, .environment writes,
+    ///    object instance replacement) re-invoke `updateUIView`, which MUST
+    ///    unconditionally rebuild the root — never add an equality guard.
+    /// 2. ObservableObject MUTATIONS re-render inside the hosting controller
+    ///    via the subscription the hosted tree holds through the forwarded
+    ///    reference — no `updateUIView` fires, and none is needed.
     private func makeRoot(context: Context, coordinator: Coordinator) -> InputHostRoot<Content> {
         InputHostRoot(
             environment: context.environment,

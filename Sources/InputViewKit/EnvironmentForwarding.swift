@@ -7,9 +7,13 @@ import SwiftUI
 /// environment objects) into the separately-hosted panel, and reports the
 /// content's ideal height so the `UIInputView` wrapper can self-size.
 struct InputHostRoot<Content: View>: View {
-    var environment: EnvironmentValues
-    var content: Content
-    var onHeightChange: (CGFloat) -> Void
+    let environment: EnvironmentValues
+    let content: Content
+    /// Called whenever the content's ideal height changes.
+    /// Runs during the SwiftUI layout pass; it must not write SwiftUI state
+    /// that flows back into `content` (layout-cycle risk). Invalidating
+    /// UIKit intrinsic size from here is safe.
+    let onHeightChange: @MainActor (CGFloat) -> Void
 
     var body: some View {
         content

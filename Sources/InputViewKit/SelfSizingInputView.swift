@@ -42,8 +42,10 @@ final class SelfSizingInputView: UIInputView {
     }
 
     override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric,
-               height: idealContentHeight + safeAreaInsets.bottom)
+        // Panel height = the content's own ideal height only. We deliberately do NOT reserve the bottom
+        // safe-area (home indicator) inset, so the panel content extends to the very bottom of the keyboard
+        // window (the hosted content ignores the safe area — see `host.safeAreaRegions = []`).
+        CGSize(width: UIView.noIntrinsicMetric, height: idealContentHeight)
     }
 
     override func safeAreaInsetsDidChange() {

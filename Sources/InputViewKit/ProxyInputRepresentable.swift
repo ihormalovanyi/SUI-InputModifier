@@ -22,12 +22,12 @@ struct ProxyInputRepresentable<Content: View>: UIViewRepresentable {
         host.view.backgroundColor = .clear
         host.view.translatesAutoresizingMaskIntoConstraints = false
         host.sizingOptions = .intrinsicContentSize
-        // The hosting view lives INSIDE the keyboard's input window; without
-        // this it would try to keyboard-avoid itself (content offset/clipped
-        // by up to the panel's own height). Keep .container so the home
-        // indicator inset still propagates to SwiftUI content.
+        // The hosting view lives INSIDE the keyboard's input window. `[]` observes NO safe-area regions:
+        // it excludes `.keyboard` (so the panel can't keyboard-avoid itself — content offset/clipped by up
+        // to the panel's own height) AND `.container` (so the bottom home-indicator inset does NOT push the
+        // content up — the panel fills to the bottom edge of the keyboard window).
         if #available(iOS 16.4, *) {
-            host.safeAreaRegions = .container
+            host.safeAreaRegions = []
         }
 
         wrapper.addSubview(host.view)

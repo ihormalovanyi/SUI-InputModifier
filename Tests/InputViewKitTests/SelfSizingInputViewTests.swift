@@ -12,14 +12,14 @@ struct SelfSizingInputViewTests {
 
         view.setIdealContentHeight(120)
         #expect(reloads == 1)
-        #expect(view.intrinsicContentSize.height == 120 + view.safeAreaInsets.bottom)
+        #expect(view.intrinsicContentSize.height == 120)   // no safe-area reservation
 
         view.setIdealContentHeight(120)      // same value — no-op
         #expect(reloads == 1)
 
         view.setIdealContentHeight(180)
         #expect(reloads == 2)
-        #expect(view.intrinsicContentSize.height == 180 + view.safeAreaInsets.bottom)
+        #expect(view.intrinsicContentSize.height == 180)
     }
 
     @Test func clampsNegativeHeightToZero() {
@@ -29,11 +29,11 @@ struct SelfSizingInputViewTests {
 
         view.setIdealContentHeight(-50)      // clamped to 0 == initial — no-op
         #expect(reloads == 0)
-        #expect(view.intrinsicContentSize.height == view.safeAreaInsets.bottom)
+        #expect(view.intrinsicContentSize.height == 0)     // clamped to 0, no safe-area reservation
 
         view.setIdealContentHeight(90)
         view.setIdealContentHeight(-1)       // clamped to 0 — distinct from 90
-        #expect(view.intrinsicContentSize.height == view.safeAreaInsets.bottom)
+        #expect(view.intrinsicContentSize.height == 0)     // clamped to 0, no safe-area reservation
         #expect(reloads == 2)
     }
 }
